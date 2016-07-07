@@ -1,0 +1,51 @@
+---
+file: fail2ban/tasks/os_agnostic_fetch_configuration.yml
+
+# Configuration file backup(s)
+
+# Original configuration
+
+## Save our originals if it has not be done previously.
+
+- name: 'Do we have an original file in {{ fail2ban_fetched_files_original_root }}/{{ ansible_hostname }}? '
+  become: false
+  local_action: stat path={{ fail2ban_fetched_files_original_root }}/{{ ansible_hostname }}/etc/fail2ban/zones
+  register: stat_fail2ban_originals
+  tags: [ 'packages', 'fail2ban', 'originals' ]
+
+- debug: var=stat_fail2ban_originals.stat.exists
+
+- name: "backup our fail2ban originals"
+  fetch:
+    src='{{ item.value.dest }}'
+    dest='{{ fail2ban_fetched_files_original_root }}'
+    flat=no
+  with_dict: "{{ fail2ban_config_files }}"
+  when: stat_fail2ban_originals.stat.exists != true
+  tags: [ 'packages', 'fail2ban', 'backup' ]
+
+# Previous configuration
+
+## Backup our current configuration.
+
+- name: "backup our current fail2ban to previous"
+  fetch:
+    src='{{ item.value.dest }}'
+    dest='{{ fail2ban_fetched_files_previous_root }}'
+    flat=no
+  with_dict: "{{ fail2ban_config_files }}"
+  tags: [ 'packages', 'fail2ban', 'backup' ]
+
+# History
+
+## Backup our current configuration to our history archive
+
+- name: "backup our current fail2ban to our history archive"
+  fetch:
+    src='{{ item.value.dest }}'
+    dest='{{ fail2ban_fetched_files_history_root }}'
+    flat=no
+  with_dict: "{{ fail2ban_config_files }}"
+  tags: [ 'packages', 'fail2ban', 'backup' ]
+
+

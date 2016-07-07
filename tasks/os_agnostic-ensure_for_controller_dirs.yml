@@ -1,0 +1,10 @@
+- name: ensure for directories
+  become: false
+  local_action: file
+    path='{{ item.path }}'
+    state=directory
+  with_items:
+    - { path: "{{ fail2ban_fetched_files_root }}" }
+    - { path: "{{ fail2ban_fetched_files_history_root }}" }
+    - { path: "{{ fail2ban_fetched_files_original_root }}" }
+    - { path: "{{ fail2ban_fetched_files_previous_root }}" }

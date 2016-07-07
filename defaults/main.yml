@@ -1,4 +1,38 @@
 ---
+# file: roles/fail2ban/defaults/main.yml
+
+
+# boiler plate: storage location on controller
+
+## time stamps
+
+fail2ban_date_time_stamp: '{{ ansible_date_time.date }}--{{ ansible_date_time.hour }}-{{ ansible_date_time.minute }}-{{ ansible_date_time.second }}--{{ ansible_date_time.tz }}'
+fail2ban_fixed_date_time_stamp: "{{ fail2ban_date_time_stamp }}"
+
+## directories on controller
+ 
+fail2ban_fetched_files_root: '../ace_fetched_files'
+fail2ban_fetched_files_history_root: '{{ fail2ban_fetched_files_root }}/history/{{ fail2ban_fixed_date_time_stamp }}'
+fail2ban_fetched_files_original_root: '{{ fail2ban_fetched_files_root }}/original'
+fail2ban_fetched_files_previous_root: '{{ fail2ban_fetched_files_root }}/previous'
+
+# Configuration files
+
+fail2ban_config_files:
+
+  fail2ban_conf:
+    src: 'etc/fail2ban/fail2ban.conf'
+    dest: '/etc/fail2ban/fail2ban.conf'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+
+  jail_local:
+    src  : 'etc/fail2ban/jail.local'
+    dest : '/etc/fail2ban/jail.local'
+    owner: 'root'
+    group: 'root'
+    mode : '0644'
 
 # Defaults file for fail2ban
 

@@ -1,0 +1,61 @@
+---
+
+# Tasks file for fail2ban
+
+## Create directories on our controller
+
+- name: include tasks to create our controllers directories
+  include: os_agnostic-ensure_for_controller_dirs.yml
+
+#- name: Load the OS specific varibles
+#  include_vars: "{{ role_path }}/vars/{{ ansible_os_family }}.yml"
+
+# install debian packages
+
+- name: install our debian packages
+  include: install_debian.yml
+  tags:
+    - install
+    - fail2ban
+  when: ansible_os_family == "Debian"
+
+# fetch any current fonfiguration files
+
+- name: Ensure controller has copy of original, previous and history of our configuration files
+  include: os_agnostic_fetch_configuration.yml
+
+# template our fail2ban configruation files
+
+- name: "running our templates and generate our configuration files"
+  become: true
+  template:
+    backup=yes
+    src='{{ ansible_distribution }}/{{ ansible_distribution_version }}/{{ item.value.src }}.j2'
+    dest='{{ item.value.dest }}'
+    owner='{{ item.value.owner }}'
+    group='{{ item.value.group }}'
+    mode='{{ item.value.mode }}'
+  with_dict: "{{ fail2ban_config_files }}"
+  notify: restart fail2ban
+  tags: [ 'packages', 'fail2ban', 'configure' ]
+
+- name : start and enable fail2ban service
+  become: True
+  service :
+    name    : "{{ fail2ban_service_name }}"
+    state   : "{{ fail2ban_service_state }}"
+    enabled : "{{ fail2ban_service_enabled }}"
+  tags: [ 'packages', 'fail2ban' ]
+
+# Check fail2ban status, did it start, is it running?
+
+- name: check fail2ban status
+  shell: fail2ban status
+  register: fail2ban_status
+  tags: [ 'packages', 'fail2ban', 'status' ]
+
+#- debug: var=fail2ban_status
+
+- name: If fail2ban is not running generate a fail
+  fail: msg="1st test, fail2ban failed to start on {{ inventory_hostname }}!!!"
+  when: fail2ban_status.stdout.find('fail2ban is running') == -1

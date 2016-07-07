@@ -1,42 +1,18 @@
 ---
+# fail2ban/tasks/main.yml
 
-# Tasks file for fail2ban
+- name: "run tasks/ubuntu.yml when ansible_distribution is Ubuntu"
+  include: ubuntu.yml
+  when: ansible_distribution == "Ubuntu"
 
-- name: Load the OS specific varibles
-  include_vars: "{{ role_path }}/vars/{{ ansible_os_family }}.yml"
+#- name: Running debian.yml
+#  include: debian.yml
+#  when: ansible_distribution == "Debian"
 
-- include: install_debian.yml
-  tags:
-    - install
-    - fail2ban
-  when: ansible_os_family == "Debian"
+#- name: running darwin.yml
+#  include: darwin.yml
+#  when: ansible_os_family == "Darwin"
 
-- name : update configuration file - /etc/fail2ban/fail2ban.conf
-  become: True
-  template :
-    src   : "{{ role_path }}/templates/fail2ban.conf.j2"
-    dest  : /etc/fail2ban/fail2ban.conf
-    owner : root
-    group : root
-    mode  : 0644
-  notify: restart fail2ban
-
-
-- name : update configuration file - /etc/fail2ban/jail.local
-  become: True
-  template :
-    src   : "{{ role_path }}/templates/jail.local.j2"
-    dest  : /etc/fail2ban/jail.local
-    owner : root
-    group : root
-    mode  : 0644
-  notify: restart fail2ban
-
-
-- name : start and enable service
-  become: True
-  service :
-    name    : "{{ fail2ban_service_name }}"
-    state   : "{{ fail2ban_service_state }}"
-    enabled : "{{ fail2ban_service_enabled }}"
-
+#- name: "run tasks/centos.yml when ansible_distribution is CentOS"
+#  include: centos.yml
+#  when: ansible_distribution == 'CentOS'
